@@ -7,7 +7,7 @@ def _get_command(command: str) -> list[str]:
     return command.split(" ")
 
 def run_command(command: str) -> None:
-    subprocess.run(_get_command(command))
+    subprocess.run(_get_command(command), capture_output=True, text=True)
 
 def run_commands(commands: list[str]) -> None:
     for i in range(len(commands)):
