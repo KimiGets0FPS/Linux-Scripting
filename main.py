@@ -30,7 +30,7 @@ def ufw() -> None:
     :return: None
     """
     run_commands(["apt-get install ufw", "ufw enable", "ufw status"])
-    print("ufw installed and enabled")
+    cprint("ufw installed and enabled", color="green")
 
     confirmation()
 

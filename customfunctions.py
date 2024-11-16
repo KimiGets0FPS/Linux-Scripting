@@ -71,7 +71,6 @@ def confirmation(clear=True) -> None:
 
 def _clear() -> None:
     os.system("clear")
-    exit(1)
 
 
 # Decoration
