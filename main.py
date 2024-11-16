@@ -7,15 +7,14 @@ from customfunctions import *
 _username = getpass.getuser()
 _password = getpass.getpass()
 
-def main() -> None:
-    run_command("sudo su")
+def main():
     ufw()
     update()
     remove_unauthorized_users()
     create_new_users()
 
 
-def ufw() -> None:
+def ufw():
     """
     Installs ufw if it isn't already installed
     Enables ufw and checks if it is running
@@ -23,7 +22,7 @@ def ufw() -> None:
     run_commands(["apt-get install ufw", "ufw enable", "ufw status"])
     print("ufw installed and enabled")
 
-def update() -> None:
+def update():
     """
     Running update and upgrade to update the system
     Getting unattended-upgrades to enable automatic updates
