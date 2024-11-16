@@ -136,7 +136,14 @@ def remove_hacking_tools() -> None:
     confirmation()
 
 
-def possible_critical_services():
+def possible_critical_services() -> None:
+    """
+    Removes unneeded services that aren't listed on the ReadMe
+
+    Installs and updates services that are needed
+
+    :return: None
+    """
     services = ["openssh-server", "openssh-client", "samba", "apache2", "vsftpd", "snmp"]
     exclusion = input("Critical services to add to exclusion list (must be program name and seperated by comma): ").split(", ")
 
@@ -148,14 +155,17 @@ def possible_critical_services():
         else:
             cprint(f"Ignoring {services[i]}...", color="blue")
 
+    cprint("Finishing up...", color="yellow")
+    run_command("apt-get autoremove -y")
+    cprint("Unneeded Services Removed!", color="green")
+
     for i in range(len(exclusion)):
         cprint(f"Installing and upgrading {exclusion[i]}", color="yellow")
         run_commands([f"apt-get install {exclusion[i]} -y", f"apt-get upgrade {exclusion[i]}"], capture_output=False)
         cprint(f"Done installing and upgrading {exclusion[i]}", color="green")
 
-    cprint("Finishing up...", color="yellow")
-    run_command("apt-get autoremove -y")
-    cprint("Unneeded services removed!", color="green")
+    cprint("Critical Services Installed!", color="green")
+    cprint(f"\nMake sure to SECURE these services: {', '.join(services)}", color="red", bold=True, underline=True)
 
     confirmation()
 
