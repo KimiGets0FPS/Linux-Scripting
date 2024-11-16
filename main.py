@@ -4,9 +4,9 @@ from customfunctions import *
 
 
 def main():
-    ufw()  # Gets Firewall
+    # ufw()  # Gets Firewall
 
-    update()  # Updating system
+    # update()  # Updating system
 
     # change_password(input("Enter a password (Default: CyberPatriot123!@#): "))  # Changing user passwords
 
