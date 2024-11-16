@@ -15,7 +15,7 @@ def main():
 
     secure_root()  # Secures root
 
-    secure_shadow()  # Secures shadow
+    secure_etc_files()  # Secures etc files
 
     remove_hacking_tools()  # Removes hacking tools
 
@@ -135,13 +135,16 @@ def secure_root() -> None:
     confirmation()
 
 
-def secure_shadow() -> None:
+def secure_etc_files() -> None:
     """
     Securing /etc/shadow
-
+    
     :return: None
     """
-    run_commands(["sudo chmod 640 /etc/shadow", "ls -l /etc/shadow"])
+    run_commands(["sudo chmod 640 /etc/shadow", "ls -l /etc/shadow",
+                  "sudo chmod 644 /etc/passwd", "ls -l /etc/passwd",
+                  "sudo chmod 644 /etc/group", "ls -l /etc/group",
+                  "sudo chmod 644 /etc/gshadow", "ls -l /etc/gshadow"])
 
     confirmation()
 
@@ -196,7 +199,41 @@ def possible_critical_services() -> None:
 
     confirmation()
 
+def config_sysctl() -> None:
+    """
+    Configs sysctl
 
+    :return: None
+    """
+    run_commands([
+        "sed -i '$a net.ipv6.conf.all.disable_ipv6 = 1' /etc/sysctl.conf",
+        "sed -i '$a net.ipv6.conf.default.disable_ipv6 = 1' /etc/sysctl.conf",
+        "sed -i '$a net.ipv6.conf.lo.disable_ipv6 = 1' /etc/sysctl.conf",
+        "sed -i '$a net.ipv4.conf.all.rp_filter=1' /etc/sysctl.conf",
+        "sed -i '$a net.ipv4.conf.all.accept_source_route=0' /etc/sysctl.conf",
+        "sed -i '$a net.ipv4.tcp_max_syn_backlog = 2048' /etc/sysctl.conf",
+        "sed -i '$a net.ipv4.tcp_synack_retries = 2' /etc/sysctl.conf",
+        "sed -i '$a net.ipv4.tcp_syn_retries = 5' /etc/sysctl.conf",
+        "sed -i '$a net.ipv4.tcp_syncookies=1' /etc/sysctl.conf",
+        "sed -i '$a net.ipv4.ip_foward=0' /etc/sysctl.conf",
+        "sed -i '$a net.ipv4.conf.all.send_redirects=0' /etc/sysctl.conf",
+        "sed -i '$a net.ipv4.conf.default.send_redirects=0' /etc/sysctl.conf"
+    ])
+
+    run_command("sysctl -p", capture_output=False)
+    cprint("Sysctl configured", color="green")
+
+    confirmation()
+
+# Todo: create config functions for each service
+# -openssh-server
+# -openssh-client
+# -mysql
+# -apache2
+# -samba?
+# -vsftpd?
+# -x11vnc?
+# Todo: Password Policy config function
 
 if __name__ == "__main__":
     _username = getpass.getuser()

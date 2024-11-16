@@ -1,7 +1,6 @@
 import os
 import subprocess
 
-from typing_extensions import override
 
 
 def _get_command(command: str) -> list[str]:
@@ -88,3 +87,18 @@ def _get_decoration(bold: bool=False, underline: bool=False) -> str:
     if underline:
         decoration += "4;"
     return decoration
+
+#Todo finish this function
+import urllib.request
+def get_readme_data() -> str:
+    fp = urllib.request.urlopen("") #README url here
+    mybytes = fp.read()
+
+    mystr = mybytes.decode("utf8")
+    fp.close()
+    return mystr
+
+#Todo finish this function
+def parse_readme_data(data: str) -> list[str]:
+    my_list = data.splitlines()
+    users = []
