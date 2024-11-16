@@ -1,6 +1,5 @@
 import getpass
 import os
-import subprocess
 from customfunctions import *
 
 
@@ -27,8 +26,12 @@ def update():
     Running update and upgrade to update the system
     Getting unattended-upgrades to enable automatic updates
     """
+    print_yellow("Updating system...")
+    print_red("DO NOT STOP THE SCRIPT")
     run_commands(["apt update -y", "apt upgrade -y"])
     print_green("System updated")
+
+    print_yellow("Installing unattended-upgrades...")
     run_commands(["apt-get install unattended-upgrades -y", "systemctl start unattended-upgrades"])
     print_green("Auto updates started")
 

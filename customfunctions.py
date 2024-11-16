@@ -22,6 +22,9 @@ def clear():
 def print_green(string: str) -> None:
     print(f"\033[92m{string}\033[0m")
 
+def print_yellow(string: str) -> None:
+    print(f"\033[93m{string}\033[0m")
+
 def print_red(string: str) -> None:
     print(f"\033[91m{string}\033[0m")
 
