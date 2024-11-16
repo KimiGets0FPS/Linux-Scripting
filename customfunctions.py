@@ -78,7 +78,7 @@ def _clear() -> None:
 def cprint(text: str, color: str="default", end: str="\n", bold: bool=False, underline: bool=False) -> None:
     colors = {"default": "89m", "grey": "90m", "red": "91m", "green": "92m", "yellow": "93m", "blue": "94m", "magenta": "95m", "cyan": "96m", "white": "97m"}
 
-    print(f"\033[{_get_decoration(bold=bold, underline=underline)}{colors.get(color)}{text}\033[0m", end=end)
+    print(f"\033[{_get_decoration(bold=bold, underline=underline)}{colors.get(color.lower())}{text}\033[0m", end=end)
 
 
 def _get_decoration(bold: bool=False, underline: bool=False) -> str:

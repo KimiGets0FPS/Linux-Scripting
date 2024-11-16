@@ -18,7 +18,9 @@ def main():
 
     # secure_shadow()  # Secures shadow
 
-    remove_hacking_tools()  # Removes hacking tools
+    # remove_hacking_tools()  # Removes hacking tools
+
+    possible_critical_services()  # Removes or keeps possible critical services in ReadMe
 
 
 def ufw() -> None:
@@ -122,7 +124,7 @@ def remove_hacking_tools() -> None:
 
     :return: None
     """
-    hacking_tools = ["john", "hydra", "nginx", "wireshark", "ophcrack", "nikto", "tcpdump", "nmap", "zenmap"]
+    hacking_tools = ["john", "hydra", "nginx", "wireshark", "ophcrack", "nikto", "tcpdump", "nmap", "zenmap", "deluge"]
     for i in range(len(hacking_tools)):
         cprint(f"Removing {hacking_tools[i]}", color="blue")
         run_command(f"apt-get purge {hacking_tools[i]} -y", capture_output=False)
@@ -134,10 +136,16 @@ def remove_hacking_tools() -> None:
 
 
 def possible_critical_services():
-    services = ["openssh", "samba", "apache2", "vsftpd", "ftp"]
+    services = ["openssh-server", "openssh-client", "samba", "apache2", "vsftpd", "ftp", "snmp"]
     for i in range(len(services)):
-        if ...:
-            keep_or_remove = input(f"Would you like to remove {services[i]} (y/n):")
+        if run_command(f"dpkg -l | grep -i {services[i]}", shell=True, capture_output=True, text=True) == 0:
+            remove = input(f"Would you like to remove {services[i]} (y/n):").lower()[0] == "y"
+            if remove:
+                cprint("REMOVE", color="red")
+            else:
+                cprint("KEEP", color="green")
+
+
 
 
 if __name__ == "__main__":
