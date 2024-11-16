@@ -1,6 +1,4 @@
 import getpass
-import os
-import subprocess
 from customfunctions import *
 
 
@@ -9,11 +7,11 @@ def main():
 
     # update()  # Updating system
 
-    # change_password(input("Enter a password (Default: CyberPatriot123!@#): "))  # Changing user passwords
+    change_password(input("Enter a password (Default: CyberPatriot123!@#): "))  # Changing user passwords
 
-    # remove_unauthorized_users()  # Removes unauthorized users
+    remove_unauthorized_users()  # Removes unauthorized users
 
-    # create_new_users()  # Creates new users
+    create_new_users()  # Creates new users
 
     # secure_root()  # Secures root
 
@@ -21,7 +19,7 @@ def main():
 
     # remove_hacking_tools()  # Removes hacking tools
 
-    possible_critical_services()  # Removes or keeps possible critical services in ReadMe
+    # possible_critical_services()  # Removes or keeps possible critical services in ReadMe
 
 
 def ufw() -> None:
@@ -144,7 +142,7 @@ def possible_critical_services() -> None:
 
     :return: None
     """
-    services = ["openssh-server", "openssh-client", "samba", "apache2", "vsftpd", "snmp"]
+    services = ["openssh-server", "openssh-client", "samba", "apache2", "vsftpd", "snmp", "x11vnc"]
     exclusion = input("Critical services to add to exclusion list (must be program name and seperated by comma): ").split(", ")
 
     for i in range(len(services)):
@@ -165,7 +163,7 @@ def possible_critical_services() -> None:
         cprint(f"Done installing and upgrading {exclusion[i]}", color="green")
 
     cprint("Critical Services Installed!", color="green")
-    cprint(f"\nMake sure to SECURE these services: {', '.join(services)}", color="red", bold=True, underline=True)
+    cprint(f"\nMake sure to SECURE these services: {', '.join(exclusion)}", color="red", bold=True, underline=True)
 
     confirmation()
 
