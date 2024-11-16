@@ -1,5 +1,6 @@
 import getpass
 import os
+import subprocess
 from customfunctions import *
 
 
@@ -136,9 +137,9 @@ def remove_hacking_tools() -> None:
 
 
 def possible_critical_services():
-    services = ["openssh-server", "openssh-client", "samba", "apache2", "vsftpd", "ftp", "snmp"]
+    services = ["openssh-server", "openssh-client", "samba", "apache2", "ftp", "snmp"]
     for i in range(len(services)):
-        if run_command(f"dpkg -l | grep -i {services[i]}", shell=True, capture_output=True, text=True) == 0:
+        if subprocess.run(f"dpkg -l | grep -i {services[i]}", shell=True, capture_output=True, text=True).returncode == 0:
             remove = input(f"Would you like to remove {services[i]} (y/n):").lower()[0] == "y"
             if remove:
                 cprint("REMOVE", color="red")
