@@ -3,9 +3,9 @@ from customfunctions import *
 
 
 def main():
-    # ufw()  # Gets Firewall
+    ufw()  # Gets Firewall
 
-    # update()  # Updating system
+    update()  # Updating system
 
     change_password(input("Enter a password (Default: CyberPatriot123!@#): "))  # Changing user passwords
 
@@ -13,13 +13,13 @@ def main():
 
     create_new_users()  # Creates new users
 
-    # secure_root()  # Secures root
+    secure_root()  # Secures root
 
-    # secure_shadow()  # Secures shadow
+    secure_shadow()  # Secures shadow
 
-    # remove_hacking_tools()  # Removes hacking tools
+    remove_hacking_tools()  # Removes hacking tools
 
-    # possible_critical_services()  # Removes or keeps possible critical services in ReadMe
+    possible_critical_services()  # Removes or keeps possible critical services in ReadMe
 
 
 def ufw() -> None:
@@ -57,12 +57,40 @@ def update() -> None:
     confirmation()
 
 
+def media_files() -> None:
+    """
+    Finds all media files
+    :return:
+    """
+    cprint("Pictures: ", color="magenta", bold=True)
+    for extension in "jpeg jpg png tiff gif svg bmp webp".split(" "):
+        run_command(f"locate /home *.{extension}")
+    confirmation()
+
+    cprint("Videos: ", color="magenta", bold=True)
+    for extension in "mov mp4 wmv avi mkv webm flv avchd".split(" "):
+        run_command(f"locate /home *.{extension}")
+    confirmation()
+
+    cprint("Audio: ", color="magenta", bold=True)
+    for extension in "wav mp3 aiff aac alac m4a flac wma".split(" "):
+        run_command(f"locate /home *.{extension}")
+    confirmation()
+
+    cprint("Others: ", color="magenta", bold=True)
+    for extension in "tar.gz php".split(" "):
+        run_command(f"locate / *.{extension}")
+    confirmation()
+
+
 def change_password(password: str = "CyberPatriot123!@#") -> None:
     """
     :param password: Password to change to (Default: CyberPatriot123!@#)
 
     :return: None
     """
+    return
+
 
 
 def remove_unauthorized_users() -> None:
@@ -88,9 +116,10 @@ def create_new_users() -> None:
     """
     Creates users from normal_users.txt
     """
-    new_users = open("new_users.txt", "r").read().splitlines()
-
-    confirmation()
+    return
+    # new_users = open("new_users.txt", "r").read().splitlines()
+    #
+    # confirmation()
 
 
 def secure_root() -> None:
