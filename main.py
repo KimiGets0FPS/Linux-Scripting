@@ -137,7 +137,7 @@ def remove_hacking_tools() -> None:
 
 
 def possible_critical_services():
-    services = ["openssh-server", "openssh-client", "samba", "apache2", "ftp", "snmp"]
+    services = ["openssh-server", "openssh-client", "samba", "apache2", "vsftpd", "snmp"]
     exclusion = input("Critical services to add to exclusion list (must be program name and seperated by comma): ").split(", ")
     for i in range(len(services)):
         if services[i] not in exclusion:
