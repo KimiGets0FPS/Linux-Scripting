@@ -4,16 +4,21 @@ from customfunctions import *
 
 
 def main():
-
     ufw()  # Gets Firewall
 
     update()  # Updating system
 
-    change_password(input("Enter a password (Default: CyberPatriot123!@#): "))  # Changing user passwords
+    # change_password(input("Enter a password (Default: CyberPatriot123!@#): "))  # Changing user passwords
 
-    remove_unauthorized_users()  # Removes unauthorized users
+    # remove_unauthorized_users()  # Removes unauthorized users
 
-    create_new_users()  # Creates new users
+    # create_new_users()  # Creates new users
+
+    # secure_root()  # Secures root
+
+    # secure_shadow()  # Secures shadow
+
+    remove_hacking_tools()  # Removes hacking tools
 
 
 def ufw() -> None:
@@ -29,6 +34,7 @@ def ufw() -> None:
 
     confirmation()
 
+
 def update() -> None:
     """
     Running update and upgrade to update the system
@@ -37,24 +43,26 @@ def update() -> None:
 
     :return: None
     """
-    print_yellow("Updating system...")
+    cprint("Updating system...", color="yellow")
     run_commands(["apt update -y", "apt upgrade -y"])
-    print_green("System updated")
+    cprint("System updated", color="green")
 
     confirmation(False)
 
-    print_yellow("Installing unattended-upgrades...")
+    cprint("Installing unattended-upgrades...", color="yellow")
     run_commands(["apt-get install unattended-upgrades -y", "systemctl start unattended-upgrades"])
-    print_green("Auto updates started")
+    cprint("Auto updates started", color="green")
 
     confirmation()
 
-def change_password(password: str="CyberPatriot123!@#") -> None:
+
+def change_password(password: str = "CyberPatriot123!@#") -> None:
     """
     :param password: Password to change to (Default: CyberPatriot123!@#)
 
     :return: None
     """
+
 
 def remove_unauthorized_users() -> None:
     """
@@ -68,11 +76,12 @@ def remove_unauthorized_users() -> None:
     sudoers = open("admins.txt", "r").read().splitlines()
 
     if not normal_users or not sudoers:
-        print_red("ADD USERS TO normal_users.txt AND admins.txt BEFORE DOING THIS COMMAND", bold=True)
+        cprint("ADD USERS TO normal_users.txt AND admins.txt BEFORE DOING THIS COMMAND", color="red", bold=True)
         confirmation()
         return
 
     confirmation()
+
 
 def create_new_users() -> None:
     """
@@ -82,17 +91,19 @@ def create_new_users() -> None:
 
     confirmation()
 
+
 def secure_root() -> None:
     """
     Secures Root
 
     :return: None
     """
-    print_yellow("Secure Root...")
+    cprint("Secure Root...", color="yellow")
     run_command("sudo passwd -l root")
-    print_green("Root Secured")
+    cprint("Root Secured", color="green")
 
     confirmation()
+
 
 def secure_shadow() -> None:
     """
@@ -104,14 +115,29 @@ def secure_shadow() -> None:
 
     confirmation()
 
+
 def remove_hacking_tools() -> None:
     """
     Removes all hacking tools
 
     :return: None
     """
+    hacking_tools = ["john", "hydra", "nginx", "wireshark", "ophcrack", "nikto", "tcpdump", "nmap", "zenmap"]
+    for i in range(len(hacking_tools)):
+        cprint(f"Removing {hacking_tools[i]}", color="blue")
+        run_command(f"apt-get purge {hacking_tools[i]} -y", capture_output=False)
+
+    run_command("apt-get autoremove -y", capture_output=False)
+    cprint("Hacking tools removed!", color="green")
 
     confirmation()
+
+
+def possible_critical_services():
+    services = ["openssh", "samba", "apache2", "vsftpd", "ftp"]
+    for i in range(len(services)):
+        if ...:
+            keep_or_remove = input(f"Would you like to remove {services[i]} (y/n):")
 
 
 if __name__ == "__main__":
