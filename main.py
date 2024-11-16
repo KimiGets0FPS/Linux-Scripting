@@ -138,14 +138,18 @@ def remove_hacking_tools() -> None:
 
 def possible_critical_services():
     services = ["openssh-server", "openssh-client", "samba", "apache2", "ftp", "snmp"]
+    exclusion = input("Critical services to add to exclusion list (must be program name and seperated by comma): ").split(", ")
     for i in range(len(services)):
-        if subprocess.run(f"dpkg -l | grep -i {services[i]}", shell=True, capture_output=True, text=True).returncode == 0:
-            remove = input(f"Would you like to remove {services[i]} (y/n):").lower()[0] == "y"
-            if remove:
-                cprint("REMOVE", color="red")
-            else:
-                cprint("KEEP", color="green")
+        if services[i] not in exclusion:
+            cprint(f"Removing {services[i]}", color="yellow")
+            run_command(f"apt-get purge {services[i]}", capture_output=False)
+            cprint(f"Removed {services[i]}", color="green")
 
+    cprint("Finishing up...", color="yellow")
+    run_command("apt-get autoremove")
+    cprint("Unneeded services removed!", color="green")
+
+    confirmation()
 
 
 
