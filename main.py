@@ -1,6 +1,6 @@
 import getpass
 from customfunctions import *
-
+from configServices import *
 
 def main():
     ufw()  # Gets Firewall
@@ -149,6 +149,94 @@ def secure_etc_files() -> None:
 
     confirmation()
 
+def search_prohibited_files() -> None:
+    """
+    Searches for prohibited files and logs them before deletion
+    """
+    cprint("Searching for prohibited files...", color="yellow")
+    
+    # Log media files
+    run_commands([
+        "echo '###MEDIA FILES###' >> pFiles.log",
+        "find / -name '*.mov' -type f >> pFiles.log",
+        "find / -name '*.mp4' -type f >> pFiles.log", 
+        "find / -name '*.mp3' -type f >> pFiles.log",
+        "find / -name '*.wav' -type f >> pFiles.log"
+    ])
+
+    # Log pictures
+    run_commands([
+        "echo '###PICTURES###' >> pFiles.log",
+        "find / -name '*.jpg' -type f >> pFiles.log",
+        "find / -name '*.jpeg' -type f >> pFiles.log"
+    ])
+
+    # Log other files
+    run_commands([
+        "echo '###OTHER###' >> pFiles.log",
+        "find / -name '*.tar.gz' -type f >> pFiles.log",
+        "find / -name '*.php' -type f >> pFiles.log", 
+        "find / -name '*backdoor*.*' -type f >> pFiles.log",
+        "find / -name '*backdoor*.php' -type f >> pFiles.log"
+    ])
+
+    # Log files without groups and games
+    run_commands([
+        "echo '###FILES WITHOUT GROUPS###' >> pFiles.log",
+        "find / -nogroup >> pFiles.log",
+        "echo '###GAMES###' >> pFiles.log",
+        "dpkg -l | grep -i game >> pFiles.log"
+    ])
+
+    # Delete prohibited files
+    cprint("Deleting prohibited files...", color="yellow")
+    run_commands([
+        # Audio files
+        "find / -name '*.mp3' -type f -delete",
+        # Video files  
+        "find / -name '*.mov' -type f -delete",
+        "find / -name '*.mp4' -type f -delete",
+        # Picture files
+        "find / -name '*.jpg' -type f -delete",
+        "find / -name '*.jpeg' -type f -delete"
+    ])
+
+    # Display log
+    run_command("cat pFiles.log", capture_output=False)
+    
+    cprint("Prohibited files have been logged and deleted", color="green")
+    confirmation()
+def backup_files() -> None:
+    """
+    Backs up files
+    """
+    backup_files = [
+        "/etc/passwd",
+        "/etc/shadow",
+        "/etc/group",
+        "/etc/gshadow",
+        "/etc/sysctl.conf",
+        "/etc/ssh/sshd_config",
+        "/etc/login.defs",
+        "/etc/pam.d/common-password",
+        "/etc/mysql/mysql.conf.d/mysqld.cnf",
+        "/etc/apache2/conf-available/security.conf"
+    ]
+    
+    # Create a single tar.gz archive containing all backup files
+    # Check if backup files exist before attempting backup
+    for file_path in backup_files:
+        if not os.path.exists(file_path):
+            cprint(f"Warning: {file_path} does not exist", color="yellow")
+            backup_files.remove(file_path)
+            confirmation(clear=False)
+    backup_command = "tar -czvf backup.tar.gz " + " ".join(backup_files)
+    run_commands([
+        backup_command,
+        "ls -l backup.tar.gz"
+    ])
+
+    confirmation()
 
 def remove_hacking_tools() -> None:
     """
@@ -217,99 +305,6 @@ def possible_critical_services() -> None:
     
     confirmation()
     
-def config_sysctl() -> None:
-    """
-    Configs sysctl
-
-    :return: None
-    """
-    run_commands([
-        "sed -i '$a net.ipv6.conf.all.disable_ipv6 = 1' /etc/sysctl.conf",
-        "sed -i '$a net.ipv6.conf.default.disable_ipv6 = 1' /etc/sysctl.conf",
-        "sed -i '$a net.ipv6.conf.lo.disable_ipv6 = 1' /etc/sysctl.conf",
-        "sed -i '$a net.ipv4.conf.all.rp_filter=1' /etc/sysctl.conf",
-        "sed -i '$a net.ipv4.conf.all.accept_source_route=0' /etc/sysctl.conf",
-        "sed -i '$a net.ipv4.tcp_max_syn_backlog = 2048' /etc/sysctl.conf",
-        "sed -i '$a net.ipv4.tcp_synack_retries = 2' /etc/sysctl.conf",
-        "sed -i '$a net.ipv4.tcp_syn_retries = 5' /etc/sysctl.conf",
-        "sed -i '$a net.ipv4.tcp_syncookies=1' /etc/sysctl.conf",
-        "sed -i '$a net.ipv4.ip_foward=0' /etc/sysctl.conf",
-        "sed -i '$a net.ipv4.conf.all.send_redirects=0' /etc/sysctl.conf",
-        "sed -i '$a net.ipv4.conf.default.send_redirects=0' /etc/sysctl.conf"
-    ])
-
-    run_command("sysctl -p", capture_output=False)
-    cprint("Sysctl configured", color="green")
-
-    confirmation()
-
-def openssh_config() -> None:
-    """
-    Configs ssh
-    """
-    run_commands([
-        "sed -i 's/LoginGraceTime .*/LoginGraceTime 60/g' /etc/ssh/sshd_config",
-        "sed -i 's/PermitRootLogin .*/PermitRootLogin no/g' /etc/ssh/sshd_config",
-        "sed -i 's/Protocol .*/Protocol 2/g' /etc/ssh/sshd_config",
-        "sed -i 's/#PermitEmptyPasswords .*/PermitEmptyPasswords no/g' /etc/ssh/sshd_config",
-        "sed -i 's/PasswordAuthentication .*/PasswordAuthentication yes/g' /etc/ssh/sshd_config",
-        "sed -i 's/X11Forwarding .*/X11Forwarding no/g' /etc/ssh/sshd_config"
-    ])
-    run_command("systemctl restart openssh-server", capture_output=False)
-    cprint("Openssh configured", color="green")
-
-    confirmation()
-    
-def mysql_config() -> None:
-    """
-    Configs mysql
-    """
-    run_commands([
-        "sed -i 's/bind-address .*/bind-address = 127.0.0.1/g' /etc/mysql/mysql.conf.d/mysqld.cnf",
-        "sed -i 's/skip-external-locking .*/skip-external-locking = 1/g' /etc/mysql/mysql.conf.d/mysqld.cnf",
-        "sed -i 's/key_buffer_size .*/key_buffer_size = 32M/g' /etc/mysql/mysql.conf.d/mysqld.cnf",
-        "sed -i 's/max_allowed_packet .*/max_allowed_packet = 16M/g' /etc/mysql/mysql.conf.d/mysqld.cnf",
-        "sed -i 's/thread_stack .*/thread_stack = 256K/g' /etc/mysql/mysql.conf.d/mysqld.cnf",
-        "sed -i 's/thread_cache_size .*/thread_cache_size = 8/g' /etc/mysql/mysql.conf.d/mysqld.cnf",
-        "sed -i 's/query_cache_limit .*/query_cache_limit = 1M/g' /etc/mysql/mysql.conf.d/mysqld.cnf",
-        "sed -i 's/tmp_table_size .*/tmp_table_size = 16M/g' /etc/mysql/mysql.conf.d/mysqld.cnf",
-        "sed -i 's/max_heap_table_size .*/max_heap_table_size = 16M/g' /etc/mysql/mysql.conf.d/mysqld.cnf"
-    ])
-    run_command("systemctl restart mysql", capture_output=False)
-    cprint("Mysql configured", color="green")
-
-    confirmation()
-
-def apache2_config() -> None:
-    """
-    Configs apache2
-    """
-    run_commands([
-        "sed -i 's/ServerTokens .*/ServerTokens Prod/g' /etc/apache2/conf-available/security.conf",
-        "sed -i 's/ServerSignature .*/ServerSignature Off/g' /etc/apache2/conf-available/security.conf"
-    ])
-    run_command("systemctl restart apache2", capture_output=False)
-    cprint("Apache2 configured", color="green")
-
-    confirmation()
-
-def samba_config() -> None:
-    """
-    Configs samba
-    """
-    return
-
-def vsftpd_config() -> None:
-    """
-    Configs vsftpd
-    """
-    return
-
-def x11vnc_config() -> None:
-    """
-    Configs x11vnc
-    """
-    return
 
 def password_policy_config() -> None:
     """
@@ -335,16 +330,11 @@ if __name__ == "__main__":
     _password = getpass.getpass()
 
     main()
-"""Todo: create config functions for each service
-- openssh-server done
-- openssh-client done
-- mysql done
-- apache2 done
-- samba 
-    - func declared needs to be done
-- vsftpd 
-    - func declared needs to be done
-- x11vnc 
-    - func declared needs to be done
-- maybe put configs for services in a different file?
-- password policy done (needs testing)"""
+"""Todo: 
+    - password policy
+        - needs testing
+- search_prohibited_files()
+    - partially done needs testing/make an exception for cypats directory
+- backup_files()
+    - needs testing
+"""

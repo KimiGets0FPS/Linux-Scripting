@@ -1,0 +1,18 @@
+{
+    "python.analysis.typeCheckingMode": "basic",
+    "python.analysis.autoImportCompletions": true,
+    "cursor.aipreview.enabled": true,
+    "editor.tabCompletion": "on",
+    "gitlens.ai.model": "anthropic:claude-3-5-sonnet-latest",
+    "github.copilot.chat.experimental.inlineChatCompletionTrigger.enabled": true,
+    "github.copilot.chat.experimental.startDebugging.enabled": true,
+    "github.copilot.chat.experimental.codeGeneration.instructions": [
+        {
+            "file": ".copilot-instructions.md"
+        }
+    ],
+    "cursor.general.disableHttp2": true,
+    "githubPullRequests.ignoredPullRequestBranches": [
+        "master"
+    ]
+}
