@@ -149,63 +149,6 @@ def secure_etc_files() -> None:
 
     confirmation()
 
-def search_prohibited_files() -> None:
-    """
-    Searches for prohibited files and logs them before deletion
-    """
-    cprint("Searching for prohibited files...", color="yellow")
-    
-    # Log media files
-    run_commands([
-        "echo '###MEDIA FILES###' >> pFiles.log",
-        "find / -name '*.mov' -type f >> pFiles.log",
-        "find / -name '*.mp4' -type f >> pFiles.log", 
-        "find / -name '*.mp3' -type f >> pFiles.log",
-        "find / -name '*.wav' -type f >> pFiles.log"
-    ])
-
-    # Log pictures
-    run_commands([
-        "echo '###PICTURES###' >> pFiles.log",
-        "find / -name '*.jpg' -type f >> pFiles.log",
-        "find / -name '*.jpeg' -type f >> pFiles.log"
-    ])
-
-    # Log other files
-    run_commands([
-        "echo '###OTHER###' >> pFiles.log",
-        "find / -name '*.tar.gz' -type f >> pFiles.log",
-        "find / -name '*.php' -type f >> pFiles.log", 
-        "find / -name '*backdoor*.*' -type f >> pFiles.log",
-        "find / -name '*backdoor*.php' -type f >> pFiles.log"
-    ])
-
-    # Log files without groups and games
-    run_commands([
-        "echo '###FILES WITHOUT GROUPS###' >> pFiles.log",
-        "find / -nogroup >> pFiles.log",
-        "echo '###GAMES###' >> pFiles.log",
-        "dpkg -l | grep -i game >> pFiles.log"
-    ])
-
-    # Delete prohibited files
-    cprint("Deleting prohibited files...", color="yellow")
-    run_commands([
-        # Audio files
-        "find / -name '*.mp3' -type f -delete",
-        # Video files  
-        "find / -name '*.mov' -type f -delete",
-        "find / -name '*.mp4' -type f -delete",
-        # Picture files
-        "find / -name '*.jpg' -type f -delete",
-        "find / -name '*.jpeg' -type f -delete"
-    ])
-
-    # Display log
-    run_command("cat pFiles.log", capture_output=False)
-    
-    cprint("Prohibited files have been logged and deleted", color="green")
-    confirmation()
 def backup_files() -> None:
     """
     Backs up files
