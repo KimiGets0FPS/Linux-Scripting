@@ -1,6 +1,6 @@
 import getpass
 from customfunctions import *
-
+from configServices import *
 
 def main():
     ufw()  # Gets Firewall
@@ -20,6 +20,7 @@ def main():
     remove_hacking_tools()  # Removes hacking tools
 
     possible_critical_services()  # Removes or keeps possible critical services in ReadMe
+    
 
 
 def ufw() -> None:
@@ -148,6 +149,94 @@ def secure_etc_files() -> None:
 
     confirmation()
 
+def search_prohibited_files() -> None:
+    """
+    Searches for prohibited files and logs them before deletion
+    """
+    cprint("Searching for prohibited files...", color="yellow")
+    
+    # Log media files
+    run_commands([
+        "echo '###MEDIA FILES###' >> pFiles.log",
+        "find / -name '*.mov' -type f >> pFiles.log",
+        "find / -name '*.mp4' -type f >> pFiles.log", 
+        "find / -name '*.mp3' -type f >> pFiles.log",
+        "find / -name '*.wav' -type f >> pFiles.log"
+    ])
+
+    # Log pictures
+    run_commands([
+        "echo '###PICTURES###' >> pFiles.log",
+        "find / -name '*.jpg' -type f >> pFiles.log",
+        "find / -name '*.jpeg' -type f >> pFiles.log"
+    ])
+
+    # Log other files
+    run_commands([
+        "echo '###OTHER###' >> pFiles.log",
+        "find / -name '*.tar.gz' -type f >> pFiles.log",
+        "find / -name '*.php' -type f >> pFiles.log", 
+        "find / -name '*backdoor*.*' -type f >> pFiles.log",
+        "find / -name '*backdoor*.php' -type f >> pFiles.log"
+    ])
+
+    # Log files without groups and games
+    run_commands([
+        "echo '###FILES WITHOUT GROUPS###' >> pFiles.log",
+        "find / -nogroup >> pFiles.log",
+        "echo '###GAMES###' >> pFiles.log",
+        "dpkg -l | grep -i game >> pFiles.log"
+    ])
+
+    # Delete prohibited files
+    cprint("Deleting prohibited files...", color="yellow")
+    run_commands([
+        # Audio files
+        "find / -name '*.mp3' -type f -delete",
+        # Video files  
+        "find / -name '*.mov' -type f -delete",
+        "find / -name '*.mp4' -type f -delete",
+        # Picture files
+        "find / -name '*.jpg' -type f -delete",
+        "find / -name '*.jpeg' -type f -delete"
+    ])
+
+    # Display log
+    run_command("cat pFiles.log", capture_output=False)
+    
+    cprint("Prohibited files have been logged and deleted", color="green")
+    confirmation()
+def backup_files() -> None:
+    """
+    Backs up files
+    """
+    backup_files = [
+        "/etc/passwd",
+        "/etc/shadow",
+        "/etc/group",
+        "/etc/gshadow",
+        "/etc/sysctl.conf",
+        "/etc/ssh/sshd_config",
+        "/etc/login.defs",
+        "/etc/pam.d/common-password",
+        "/etc/mysql/mysql.conf.d/mysqld.cnf",
+        "/etc/apache2/conf-available/security.conf"
+    ]
+    
+    # Create a single tar.gz archive containing all backup files
+    # Check if backup files exist before attempting backup
+    for file_path in backup_files:
+        if not os.path.exists(file_path):
+            cprint(f"Warning: {file_path} does not exist", color="yellow")
+            backup_files.remove(file_path)
+            confirmation(clear=False)
+    backup_command = "tar -czvf backup.tar.gz " + " ".join(backup_files)
+    run_commands([
+        backup_command,
+        "ls -l backup.tar.gz"
+    ])
+
+    confirmation()
 
 def remove_hacking_tools() -> None:
     """
@@ -171,7 +260,7 @@ def possible_critical_services() -> None:
     Removes unneeded services that aren't listed on the ReadMe
 
     Installs and updates services that are needed
-
+    Secures known services
     :return: None
     """
     services = ["openssh-server", "openssh-client", "samba", "apache2", "vsftpd", "snmp", "x11vnc"]
@@ -195,48 +284,57 @@ def possible_critical_services() -> None:
         cprint(f"Done installing and upgrading {exclusion[i]}", color="green")
 
     cprint("Critical Services Installed!", color="green")
-    cprint(f"\nMake sure to SECURE these services: {', '.join(exclusion)}", color="red", bold=True, underline=True)
-
+    cprint("SECURING known services...", color="yellow")
+    for i in range(len(exclusion)):
+        cprint(f"Securing {exclusion[i]}", color="blue")
+        if exclusion[i] == "openssh-server":
+            openssh_config()
+        elif exclusion[i] == "mysql":
+            mysql_config()
+        elif exclusion[i] == "apache2":
+            apache2_config()
+        elif exclusion[i] == "samba":
+            samba_config()
+        elif exclusion[i] == "vsftpd":
+            vsftpd_config()
+        elif exclusion[i] == "x11vnc":
+            x11vnc_config()
+        elif exclusion[i] != "openssh-server" or "mysql" or "apache2" or "samba" or "vsftpd" or "x11vnc":
+            cprint(f"{exclusion[i]} is not a known service make sure to secure it manually", color="red")
+    cprint("Known services secured!", color="green")
+    
     confirmation()
+    
 
-def config_sysctl() -> None:
+def password_policy_config() -> None:
     """
-    Configs sysctl
-
-    :return: None
+    Configs password policy
     """
-    run_commands([
-        "sed -i '$a net.ipv6.conf.all.disable_ipv6 = 1' /etc/sysctl.conf",
-        "sed -i '$a net.ipv6.conf.default.disable_ipv6 = 1' /etc/sysctl.conf",
-        "sed -i '$a net.ipv6.conf.lo.disable_ipv6 = 1' /etc/sysctl.conf",
-        "sed -i '$a net.ipv4.conf.all.rp_filter=1' /etc/sysctl.conf",
-        "sed -i '$a net.ipv4.conf.all.accept_source_route=0' /etc/sysctl.conf",
-        "sed -i '$a net.ipv4.tcp_max_syn_backlog = 2048' /etc/sysctl.conf",
-        "sed -i '$a net.ipv4.tcp_synack_retries = 2' /etc/sysctl.conf",
-        "sed -i '$a net.ipv4.tcp_syn_retries = 5' /etc/sysctl.conf",
-        "sed -i '$a net.ipv4.tcp_syncookies=1' /etc/sysctl.conf",
-        "sed -i '$a net.ipv4.ip_foward=0' /etc/sysctl.conf",
-        "sed -i '$a net.ipv4.conf.all.send_redirects=0' /etc/sysctl.conf",
-        "sed -i '$a net.ipv4.conf.default.send_redirects=0' /etc/sysctl.conf"
+    run_commands([ #/etc/login.defs
+        "sed -i 's/PASS_MAX_DAYS .*/PASS_MAX_DAYS 90/g' /etc/login.defs",
+        "sed -i 's/PASS_MIN_DAYS .*/PASS_MIN_DAYS 10/g' /etc/login.defs",
+        "sed -i 's/PASS_WARN_AGE .*/PASS_WARN_AGE 7/g' /etc/login.defs"
     ])
-
-    run_command("sysctl -p", capture_output=False)
-    cprint("Sysctl configured", color="green")
-
+    run_commands([ #/etc/pam.d/common-password
+        "sed -i 's/minlen .*/minlen 14/g' /etc/pam.d/common-password",
+        "sed -i 's/dcredit .*/dcredit -1/g' /etc/pam.d/common-password",
+        "sed -i 's/ucredit .*/ucredit -1/g' /etc/pam.d/common-password",
+        "sed -i 's/lcredit .*/lcredit -1/g' /etc/pam.d/common-password",
+        "sed -i 's/ocredit .*/ocredit -1/g' /etc/pam.d/common-password"
+    ])
+    cprint("Password policy configured", color="green")
     confirmation()
-
-# Todo: create config functions for each service
-# -openssh-server
-# -openssh-client
-# -mysql
-# -apache2
-# -samba?
-# -vsftpd?
-# -x11vnc?
-# Todo: Password Policy config function
 
 if __name__ == "__main__":
     _username = getpass.getuser()
     _password = getpass.getpass()
 
     main()
+"""Todo: 
+    - password policy
+        - needs testing
+- search_prohibited_files()
+    - partially done needs testing/make an exception for cypats directory
+- backup_files()
+    - needs testing
+"""
