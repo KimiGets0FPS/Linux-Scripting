@@ -1,6 +1,6 @@
 import getpass
 from customfunctions import *
-
+from configServices import *
 
 def main():
     ufw()  # Gets Firewall
@@ -15,11 +15,12 @@ def main():
 
     secure_root()  # Secures root
 
-    secure_shadow()  # Secures shadow
+    secure_etc_files()  # Secures etc files
 
     remove_hacking_tools()  # Removes hacking tools
 
     possible_critical_services()  # Removes or keeps possible critical services in ReadMe
+    
 
 
 def ufw() -> None:
@@ -135,16 +136,50 @@ def secure_root() -> None:
     confirmation()
 
 
-def secure_shadow() -> None:
+def secure_etc_files() -> None:
     """
     Securing /etc/shadow
-
+    
     :return: None
     """
-    run_commands(["sudo chmod 640 /etc/shadow", "ls -l /etc/shadow"])
+    run_commands(["sudo chmod 640 /etc/shadow", "ls -l /etc/shadow",
+                  "sudo chmod 644 /etc/passwd", "ls -l /etc/passwd",
+                  "sudo chmod 644 /etc/group", "ls -l /etc/group",
+                  "sudo chmod 644 /etc/gshadow", "ls -l /etc/gshadow"])
 
     confirmation()
 
+def backup_files() -> None:
+    """
+    Backs up files
+    """
+    backup_files = [
+        "/etc/passwd",
+        "/etc/shadow",
+        "/etc/group",
+        "/etc/gshadow",
+        "/etc/sysctl.conf",
+        "/etc/ssh/sshd_config",
+        "/etc/login.defs",
+        "/etc/pam.d/common-password",
+        "/etc/mysql/mysql.conf.d/mysqld.cnf",
+        "/etc/apache2/conf-available/security.conf"
+    ]
+    
+    # Create a single tar.gz archive containing all backup files
+    # Check if backup files exist before attempting backup
+    for file_path in backup_files:
+        if not os.path.exists(file_path):
+            cprint(f"Warning: {file_path} does not exist", color="yellow")
+            backup_files.remove(file_path)
+            confirmation(clear=False)
+    backup_command = "tar -czvf backup.tar.gz " + " ".join(backup_files)
+    run_commands([
+        backup_command,
+        "ls -l backup.tar.gz"
+    ])
+
+    confirmation()
 
 def remove_hacking_tools() -> None:
     """
@@ -168,7 +203,7 @@ def possible_critical_services() -> None:
     Removes unneeded services that aren't listed on the ReadMe
 
     Installs and updates services that are needed
-
+    Secures known services
     :return: None
     """
     services = ["openssh-server", "openssh-client", "samba", "apache2", "vsftpd", "snmp", "x11vnc"]
@@ -192,14 +227,57 @@ def possible_critical_services() -> None:
         cprint(f"Done installing and upgrading {exclusion[i]}", color="green")
 
     cprint("Critical Services Installed!", color="green")
-    cprint(f"\nMake sure to SECURE these services: {', '.join(exclusion)}", color="red", bold=True, underline=True)
-
+    cprint("SECURING known services...", color="yellow")
+    for i in range(len(exclusion)):
+        cprint(f"Securing {exclusion[i]}", color="blue")
+        if exclusion[i] == "openssh-server":
+            openssh_config()
+        elif exclusion[i] == "mysql":
+            mysql_config()
+        elif exclusion[i] == "apache2":
+            apache2_config()
+        elif exclusion[i] == "samba":
+            samba_config()
+        elif exclusion[i] == "vsftpd":
+            vsftpd_config()
+        elif exclusion[i] == "x11vnc":
+            x11vnc_config()
+        elif exclusion[i] != "openssh-server" or "mysql" or "apache2" or "samba" or "vsftpd" or "x11vnc":
+            cprint(f"{exclusion[i]} is not a known service make sure to secure it manually", color="red")
+    cprint("Known services secured!", color="green")
+    
     confirmation()
+    
 
-
+def password_policy_config() -> None:
+    """
+    Configs password policy
+    """
+    run_commands([ #/etc/login.defs
+        "sed -i 's/PASS_MAX_DAYS .*/PASS_MAX_DAYS 90/g' /etc/login.defs",
+        "sed -i 's/PASS_MIN_DAYS .*/PASS_MIN_DAYS 10/g' /etc/login.defs",
+        "sed -i 's/PASS_WARN_AGE .*/PASS_WARN_AGE 7/g' /etc/login.defs"
+    ])
+    run_commands([ #/etc/pam.d/common-password
+        "sed -i 's/minlen .*/minlen 14/g' /etc/pam.d/common-password",
+        "sed -i 's/dcredit .*/dcredit -1/g' /etc/pam.d/common-password",
+        "sed -i 's/ucredit .*/ucredit -1/g' /etc/pam.d/common-password",
+        "sed -i 's/lcredit .*/lcredit -1/g' /etc/pam.d/common-password",
+        "sed -i 's/ocredit .*/ocredit -1/g' /etc/pam.d/common-password"
+    ])
+    cprint("Password policy configured", color="green")
+    confirmation()
 
 if __name__ == "__main__":
     _username = getpass.getuser()
     _password = getpass.getpass()
 
     main()
+"""Todo: 
+    - password policy
+        - needs testing
+- search_prohibited_files()
+    - partially done needs testing/make an exception for cypats directory
+- backup_files()
+    - needs testing
+"""
