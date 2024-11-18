@@ -1,25 +1,28 @@
 import getpass
-from customfunctions import *
+
+from configs import *
 
 
 def main():
-    ufw()  # Gets Firewall
+    # ufw()  # Gets Firewall
 
-    update()  # Updating system
+    # update()  # Updating system
 
-    change_password(input("Enter a password (Default: CyberPatriot123!@#): "))  # Changing user passwords
+    # media_files()  # Find media files
 
     remove_unauthorized_users()  # Removes unauthorized users
 
     create_new_users()  # Creates new users
 
-    secure_root()  # Secures root
+    change_password(input("Enter a password (Default: CyberPatriot123!@#): "))  # Changing user passwords
 
-    secure_shadow()  # Secures shadow
+    # secure_root()  # Secures root
 
-    remove_hacking_tools()  # Removes hacking tools
+    # secure_etc_files()  # Secures shadow
 
-    possible_critical_services()  # Removes or keeps possible critical services in ReadMe
+    # remove_hacking_tools()  # Removes hacking tools
+
+    # possible_critical_services()  # Removes or keeps possible critical services in ReadMe
 
 
 def ufw() -> None:
@@ -89,7 +92,6 @@ def change_password(password: str = "CyberPatriot123!@#") -> None:
 
     :return: None
     """
-    return
 
 
 
@@ -105,7 +107,7 @@ def remove_unauthorized_users() -> None:
     sudoers = open("admins.txt", "r").read().splitlines()
 
     if not normal_users or not sudoers:
-        cprint("ADD USERS TO normal_users.txt AND admins.txt BEFORE DOING THIS COMMAND", color="red", bold=True)
+        cprint("ADD USERS TO \"normal_users.txt\" AND \"admins.txt\" BEFORE DOING THIS COMMAND", color="red", bold=True)
         confirmation()
         return
 
@@ -116,10 +118,12 @@ def create_new_users() -> None:
     """
     Creates users from normal_users.txt
     """
-    return
-    # new_users = open("new_users.txt", "r").read().splitlines()
-    #
-    # confirmation()
+    new_users = open("new_users.txt", "r").read().splitlines()
+    for i in range(len(new_users)):
+        run_command(f"sudo adduser {new_users[i]}")
+        cprint(f"{new_users[i]} user has been created.", color="green")
+
+    confirmation()
 
 
 def secure_root() -> None:
@@ -135,13 +139,22 @@ def secure_root() -> None:
     confirmation()
 
 
-def secure_shadow() -> None:
+def secure_etc_files() -> None:
     """
     Securing /etc/shadow
 
     :return: None
     """
-    run_commands(["sudo chmod 640 /etc/shadow", "ls -l /etc/shadow"])
+    run_commands([
+        "sudo chmod 640 /etc/shadow",
+        "ls -l /etc/shadow",
+        "sudo chmod 644 /etc/passwd",
+        "ls -l /etc/passwd",
+        "sudo chmod 644 /etc/group",
+        "ls -l /etc/group",
+        "sudo chmod 644 /etc/gshadow",
+        "ls -l /etc/gshadow"
+    ])
 
     confirmation()
 
@@ -169,10 +182,13 @@ def possible_critical_services() -> None:
 
     Installs and updates services that are needed
 
+    Secures known services
+
     :return: None
     """
     services = ["openssh-server", "openssh-client", "samba", "apache2", "vsftpd", "snmp", "x11vnc"]
-    exclusion = input("Critical services to add to exclusion list (must be program name and seperated by comma): ").split(", ")
+    exclusion = input(
+        "Critical services to add to exclusion list (must be program name and seperated by comma): ").split(", ")
 
     for i in range(len(services)):
         if services[i] not in exclusion:
@@ -192,11 +208,84 @@ def possible_critical_services() -> None:
         cprint(f"Done installing and upgrading {exclusion[i]}", color="green")
 
     cprint("Critical Services Installed!", color="green")
-    cprint(f"\nMake sure to SECURE these services: {', '.join(exclusion)}", color="red", bold=True, underline=True)
 
+    cprint("SECURING known services...", color="yellow")
+    for i in range(len(exclusion)):
+        cprint(f"Securing {exclusion[i]}", color="blue")
+        if exclusion[i] == "openssh-server":
+            openssh_config()
+        elif exclusion[i] == "mysql":
+            mysql_config()
+        elif exclusion[i] == "apache2":
+            apache2_config()
+        elif exclusion[i] == "samba":
+            samba_config()
+        elif exclusion[i] == "vsftpd":
+            vsftpd_config()
+        elif exclusion[i] == "x11vnc":
+            x11vnc_config()
+        elif exclusion[i] != "openssh-server" or "mysql" or "apache2" or "samba" or "vsftpd" or "x11vnc":
+            cprint(f"{exclusion[i]} is not a known service make sure to secure it manually", color="red")
+
+    cprint("Known services secured!", color="green")
     confirmation()
 
 
+def config_sysctl() -> None:
+    """
+    Configs sysctl
+
+    :return: None
+    """
+    cprint("Configuring sysctl...", color="yellow")
+
+    run_commands([
+        "sed -i '$a net.ipv6.conf.all.disable_ipv6 = 1' /etc/sysctl.conf",
+        "sed -i '$a net.ipv6.conf.default.disable_ipv6 = 1' /etc/sysctl.conf",
+        "sed -i '$a net.ipv6.conf.lo.disable_ipv6 = 1' /etc/sysctl.conf",
+        "sed -i '$a net.ipv4.conf.all.rp_filter=1' /etc/sysctl.conf",
+        "sed -i '$a net.ipv4.conf.all.accept_source_route=0' /etc/sysctl.conf",
+        "sed -i '$a net.ipv4.tcp_max_syn_backlog = 2048' /etc/sysctl.conf",
+        "sed -i '$a net.ipv4.tcp_synack_retries = 2' /etc/sysctl.conf",
+        "sed -i '$a net.ipv4.tcp_syn_retries = 5' /etc/sysctl.conf",
+        "sed -i '$a net.ipv4.tcp_syncookies=1' /etc/sysctl.conf",
+        "sed -i '$a net.ipv4.ip_foward=0' /etc/sysctl.conf",
+        "sed -i '$a net.ipv4.conf.all.send_redirects=0' /etc/sysctl.conf",
+        "sed -i '$a net.ipv4.conf.default.send_redirects=0' /etc/sysctl.conf"
+    ])
+
+    run_command("sysctl -p", capture_output=False)
+    cprint("sysctl configured", color="green")
+
+    confirmation()
+
+def config_password_policy() -> None:
+    """
+    Configs password policy
+    """
+    run_commands([ # /etc/login.defs
+        "sed -i 's/PASS_MAX_DAYS .*/PASS_MAX_DAYS 90/g' /etc/login.defs",
+        "sed -i 's/PASS_MIN_DAYS .*/PASS_MIN_DAYS 10/g' /etc/login.defs",
+        "sed -i 's/PASS_WARN_AGE .*/PASS_WARN_AGE 7/g' /etc/login.defs"
+    ])
+    run_commands([ # /etc/pam.d/common-password
+        "sed -i 's/minlen .*/minlen 14/g' /etc/pam.d/common-password",
+        "sed -i 's/dcredit .*/dcredit -1/g' /etc/pam.d/common-password",
+        "sed -i 's/ucredit .*/ucredit -1/g' /etc/pam.d/common-password",
+        "sed -i 's/lcredit .*/lcredit -1/g' /etc/pam.d/common-password",
+        "sed -i 's/ocredit .*/ocredit -1/g' /etc/pam.d/common-password"
+    ])
+    cprint("Password policy configured", color="green")
+    confirmation()
+
+# Todo: create config functions for each service
+# - samba
+#     - function needs to be finished
+# - vsftpd
+#     - function needs to be finished
+# - x11vnc
+#     - function needs to be finished
+# - password policy done (needs testing)
 
 if __name__ == "__main__":
     _username = getpass.getuser()
