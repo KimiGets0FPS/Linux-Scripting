@@ -3,26 +3,74 @@ from customfunctions import *
 from configServices import *
 
 def main():
-    ufw()  # Gets Firewall
-
-    update()  # Updating system
-
-    change_password(input("Enter a password (Default: CyberPatriot123!@#): "))  # Changing user passwords
-
-    remove_unauthorized_users()  # Removes unauthorized users
-
-    create_new_users()  # Creates new users
-
-    secure_root()  # Secures root
-
-    secure_etc_files()  # Secures etc files
-
-    remove_hacking_tools()  # Removes hacking tools
-
-    possible_critical_services()  # Removes or keeps possible critical services in ReadMe
     
+    cprint("\nAvailable actions:", color="magenta", bold=True)
+    print("1. Configure Firewall")
+    print("2. Update System")
+    print("3. Change User Passwords") 
+    print("4. Remove Unauthorized Users")
+    print("5. Create New Users")
+    print("6. Secure Root Account")
+    print("7. Secure /etc Files")
+    print("8. Remove Hacking Tools")
+    print("9. Configure Critical Services")
+    print("10. Configure Password Policy")
+    print("11. Backup Files")
+    print("12. Media Files")
 
-
+    while True:
+        choice = input("\nEnter the number of the action you want to perform (or 'q' to quit): ")
+        
+        if choice == 'q':
+            break
+            
+        try:
+            choice = int(choice)
+            if choice == 1:
+                ufw()  # Gets Firewall
+            elif choice == 2:
+                update()  # Updating system
+            elif choice == 3:
+                change_password(input("Enter a password (Default: CyberPatriot123!@#): "))  # Changing user passwords
+            elif choice == 4:
+                remove_unauthorized_users()  # Removes unauthorized users
+            elif choice == 5:
+                create_new_users()  # Creates new users
+            elif choice == 6:
+                secure_root()  # Secures root
+            elif choice == 7:
+                secure_etc_files()  # Secures etc files
+            elif choice == 8:
+                remove_hacking_tools()  # Removes hacking tools
+            elif choice == 9:
+                possible_critical_services()  # Removes or keeps possible critical services in ReadMe
+            elif choice == 10:
+                password_policy_config()  # Configs password policy
+            elif choice == 11:
+                backup_files()  # Backs up files
+            elif choice == 12:
+                media_files()  # Finds all media files
+            else:
+                cprint("Invalid choice. Please enter a number between 1 and 12.", color="red")
+        except ValueError:
+            cprint("Invalid input. Please enter a number or 'q' to quit.", color="red")
+    
+    
+def getOs() -> None:
+    """
+    Gets the OS
+    """
+    OS = run_command("lsb_release -a")
+    
+    if "Ubuntu" in OS or "Debian" in OS:
+        return "apt-get"
+    elif "Centos" in OS or "Fedora" in OS or "Red Hat" in OS:
+        return "yum"
+    else:
+        cprint("Unknown OS", color="red")
+        confirmation()
+        return "apt-get"
+    
 def ufw() -> None:
     """
     Installs ufw if it isn't already installed
@@ -31,7 +79,7 @@ def ufw() -> None:
 
     :return: None
     """
-    run_commands(["apt-get install ufw", "ufw enable", "ufw status"])
+    run_commands([f"{_command} install ufw", "ufw enable", "ufw status"])
     cprint("ufw installed and enabled", color="green")
 
     confirmation()
@@ -46,13 +94,13 @@ def update() -> None:
     :return: None
     """
     cprint("Updating system...", color="yellow")
-    run_commands(["apt update -y", "apt upgrade -y"])
+    run_commands([f"{_command} update -y", f"{_command} upgrade -y"])
     cprint("System updated", color="green")
 
     confirmation(False)
 
     cprint("Installing unattended-upgrades...", color="yellow")
-    run_commands(["apt-get install unattended-upgrades -y", "systemctl start unattended-upgrades"])
+    run_commands([f"{_command} install unattended-upgrades -y", "systemctl start unattended-upgrades"])
     cprint("Auto updates started", color="green")
 
     confirmation()
@@ -210,9 +258,9 @@ def remove_hacking_tools() -> None:
     hacking_tools = ["john", "hydra", "nginx", "wireshark", "ophcrack", "nikto", "tcpdump", "nmap", "zenmap", "deluge", "4g8"]
     for i in range(len(hacking_tools)):
         cprint(f"Removing {hacking_tools[i]}", color="blue")
-        run_command(f"apt-get purge {hacking_tools[i]} -y", capture_output=False)
+        run_command(f"{_command} purge {hacking_tools[i]} -y", capture_output=False)
 
-    run_command("apt-get autoremove -y", capture_output=False)
+    run_command(f"{_command} autoremove -y", capture_output=False)
     cprint("Hacking tools removed!", color="green")
 
     confirmation()
@@ -234,18 +282,18 @@ def possible_critical_services() -> None:
             cprint(f"Removing {services[i]}", color="yellow")
             run_command(f"systemctl disable --now {services[i]}", capture_output=False)
             run_command(f"systemctl stop {services[i]}", capture_output=False)
-            run_command(f"apt-get purge {services[i]} -y", capture_output=False)
+            run_command(f"{_command} purge {services[i]} -y", capture_output=False)
             cprint(f"Removed {services[i]}", color="green")
         else:
             cprint(f"Ignoring {services[i]}...", color="blue")
 
     cprint("Finishing up...", color="yellow")
-    run_command("apt-get autoremove -y")
+    run_command(f"{_command} autoremove -y")
     cprint("Unneeded Services Removed!", color="green")
 
     for i in range(len(exclusion)):
         cprint(f"Installing and upgrading {exclusion[i]}", color="yellow")
-        run_commands([f"apt-get install {exclusion[i]} -y", f"apt-get upgrade {exclusion[i]}"], capture_output=False)
+        run_commands([f"{_command} install {exclusion[i]} -y", f"{_command} upgrade {exclusion[i]}"], capture_output=False)
         cprint(f"Done installing and upgrading {exclusion[i]}", color="green")
 
     cprint("Critical Services Installed!", color="green")
@@ -285,7 +333,7 @@ def password_policy_config() -> None:
         "sed -i 's/PASS_WARN_AGE .*/PASS_WARN_AGE 7/g' /etc/login.defs"
     ])
     
-    run_command("apt-get install libpam-cracklib -y", capture_output=False)
+    run_command(f"{_command} install libpam-cracklib -y", capture_output=False)
     
     # Configure pam_cracklib in common-password
     run_command("sed -i '/pam_cracklib.so/c\password required pam_cracklib.so try_first_pass retry=3 minlen=10 dcredit=-1 ucredit=-1 lcredit=-1 ocredit=-1' /etc/pam.d/common-password")
@@ -304,6 +352,10 @@ def password_policy_config() -> None:
 
 
 if __name__ == "__main__":
+    _command = getOs()
+    if _command:
+        import configServices
+        configServices._command = _command
     _username = getpass.getuser()
     _password = getpass.getpass()
 
@@ -315,4 +367,5 @@ if __name__ == "__main__":
     - partially done needs testing/make an exception for cypats directory
 - backup_files()
     - needs testing
+- _command needs testing
 """

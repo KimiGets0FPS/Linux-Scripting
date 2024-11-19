@@ -4,6 +4,8 @@ from customfunctions import run_command
 from customfunctions import cprint
 from customfunctions import confirmation
 
+_command = None
+
 def config_sysctl() -> None:
     """
     Configs sysctl
@@ -120,9 +122,9 @@ def config_tcp_wrappers() -> None:
     """
     Configs tcp_wrappers
     """
-    run_command("apt-get install tcpd -y", capture_output=False)
+    run_command(f"{_command} install tcpd -y", capture_output=False)
     if (run_command("ldd /usr/sbin/sshd | grep libwrap.so  ", capture_output=True).returncode != 0):
-        run_command("apt-get install libwrap0 -y", capture_output=False)
+        run_command(f"{_command} install libwrap0 -y", capture_output=False)
         if not os.path.exists("/etc/hosts.allow"):
             run_command("touch /etc/hosts.allow", capture_output=False)
         run_commands([
