@@ -254,6 +254,8 @@ def possible_critical_services() -> None:
         cprint(f"Securing {exclusion[i]}", color="blue")
         if exclusion[i] == "openssh-server":
             openssh_config()
+        elif exclusion[i] == "openssh-client":
+            openssh_config()
         elif exclusion[i] == "mysql":
             mysql_config()
         elif exclusion[i] == "apache2":
