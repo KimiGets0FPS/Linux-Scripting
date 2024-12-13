@@ -1,6 +1,47 @@
 from customfunctions import *
 
 
+def config_sysctl() -> None:
+    """
+    Configs sysctl
+
+    :return: None
+    """
+    run_commands([
+        "sysctl -w net.ipv6.conf.all.disable_ipv6=1",
+        "sysctl -w net.ipv6.conf.default.disable_ipv6=1",
+        "sysctl -w net.ipv6.conf.lo.disable_ipv6=1",
+        "sysctl -w net.ipv6.conf.all.accept_ra=0",
+        "sysctl -w net.ipv6.conf.default.accept_ra=0",
+        "sysctl -w net.ipv4.conf.all.rp_filter=1",
+        "sysctl -w net.ipv4.conf.default.rp_filter=1",
+        "sysctl -w net.ipv4.conf.all.accept_source_route=0",
+        "sysctl -w net.ipv4.tcp_max_syn_backlog=2048",
+        "sysctl -w net.ipv4.tcp_synack_retries=2",
+        "sysctl -w net.ipv4.tcp_syn_retries=5",
+        "sysctl -w net.ipv4.tcp_syncookies=1",
+        "sysctl -w net.ipv4.ip_foward=0",
+        "sysctl -w net.ipv4.conf.all.send_redirects=0",
+        "sysctl -w net.ipv4.conf.default.send_redirects=0",
+        "sysctl -w net.ipv4.conf.all.accept_redirects=0",
+        "sysctl -w net.ipv4.conf.default.accept_redirects=0",
+        "sysctl -w net.ipv4.icmp_echo_ignore_broadcasts=1",
+        "sysctl -w net.ipv4.icmp_ignore_bogus_error_responses=1",
+        "sysctl -w net.ipv4.conf.all.log_martians=1",
+        "sysctl -w net.ipv4.conf.default.log_martians=1",
+        "sysctl -w kernel.randomize_va_space=2",
+        "systemctl disable squid",
+        "sysctl -w net.ipv4.route.flush=1",
+        "sysctl -w net.ipv6.route.flush=1",
+        "sysctl --system"
+    ])
+
+    run_command("sysctl -p", capture_output=False)
+    cprint("Sysctl configured", color="green")
+
+    confirmation()
+
+
 def openssh_config() -> None:
     """
     Configs ssh
@@ -14,9 +55,11 @@ def openssh_config() -> None:
         "sed -i 's/X11Forwarding .*/X11Forwarding no/g' /etc/ssh/sshd_config"
     ])
     run_command("systemctl restart openssh-server", capture_output=False)
+    run_command("systemctl restart sshd", capture_output=False)
     cprint("Openssh configured", color="green")
 
     confirmation()
+
 
 def mysql_config() -> None:
     """
@@ -38,6 +81,7 @@ def mysql_config() -> None:
 
     confirmation()
 
+
 def apache2_config() -> None:
     """
     Configs apache2
@@ -51,20 +95,50 @@ def apache2_config() -> None:
 
     confirmation()
 
+
 def samba_config() -> None:
     """
     Configs samba
     """
-    return
+    cprint("Samba not configured", color="red")
+    confirmation()
+
 
 def vsftpd_config() -> None:
     """
     Configs vsftpd
     """
-    return
+    cprint("Vsftpd not configured", color="red")
+    confirmation()
+
 
 def x11vnc_config() -> None:
     """
     Configs x11vnc
     """
-    return
+    cprint("X11vnc not configured", color="red")
+    confirmation()
+
+
+def config_tcp_wrappers() -> None:
+    """
+    Configs tcp_wrappers
+    """
+    run_command(f"{_command} install tcpd -y", capture_output=False)
+    if (run_command("ldd /usr/sbin/sshd | grep libwrap.so  ", capture_output=True).returncode != 0):
+        run_command(f"{_command} install libwrap0 -y", capture_output=False)
+        if not os.path.exists("/etc/hosts.allow"):
+            run_command("touch /etc/hosts.allow", capture_output=False)
+        run_commands([
+            "sed -i 's/ALL:ALL/ALL:ALL EXCEPT LOCALHOST/g' /etc/hosts.allow"
+        ])
+    run_command("chmod 644 /etc/hosts.allow", capture_output=False)
+    if not os.path.exists("/etc/hosts.deny"):
+        run_command("touch /etc/hosts.deny", capture_output=False)
+    run_commands([
+        "sed -i 's/ALL:ALL/ALL:ALL EXCEPT LOCALHOST/g' /etc/hosts.deny"
+    ])
+    run_command("chmod 644 /etc/hosts.deny", capture_output=False)
+    cprint("Tcp wrappers configured", color="green")
+
+    confirmation()

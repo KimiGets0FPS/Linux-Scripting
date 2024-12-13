@@ -85,21 +85,3 @@ def _get_decoration(bold: bool=False, underline: bool=False) -> str:
     if underline:
         decoration += "4;"
     return decoration
-
-
-# Automatically gets data from CyberPatriot ReadMe
-
-import urllib.request
-
-def get_readme_data() -> str:
-    fp = urllib.request.urlopen("") #README url here
-    mybytes = fp.read()
-
-    mystr = mybytes.decode("utf8")
-    fp.close()
-    return mystr
-
-# Todo finish this function
-def parse_readme_data(data: str) -> None:
-    my_list = data.splitlines()
-    users = []
